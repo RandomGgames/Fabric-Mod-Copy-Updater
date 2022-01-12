@@ -13,4 +13,5 @@ What this script does is, when you download a new version of a mod manually and 
 ## Planned updates/fixes
 (Sorted by highest priority at the top)
 - [ ] Fix issue where up to date mods of the same version are being deleted/disabled and re-copied due to different file modified times
+- [ ] Add log file
 - [ ] Make it forge mod compatable too (MAYBE, no promises)
