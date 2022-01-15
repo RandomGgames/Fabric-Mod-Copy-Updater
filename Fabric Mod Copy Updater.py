@@ -12,7 +12,7 @@ import json
 """
 READ 'MOD UPDATER.INI' CONFIG
 """
-print("Reading 'mod updater.ini' config...")
+print("Reading 'mod updater.ini' config... ", end = "")
 config = configparser.ConfigParser()
 if os.path.isfile("mod updater.ini"):
 	config.read("mod updater.ini")
@@ -20,17 +20,19 @@ else:
 	config['1.18.1'] = {"Directories": [], "disable_instead_of_delete": False}
 	with open("mod updater.ini", "w") as configfile:
 		config.write(configfile)
+print("Done")
 
 
 """
 SORT OUT DIRECTORIES INTO DICTIONARY
 """
-print("Caching directories into dictionary...")
+print("Caching directories into dictionary... ", end = "")
 directories = {}  # {version: [directories]}
 for version in config.sections():
 	directories[version] = []
 	for dir in eval(config[version]['directories']):
 		directories[version].append(dir)
+print("Done")
 
 #print(f"{directories = }")
 
@@ -38,8 +40,8 @@ for version in config.sections():
 """
 CACHE ALL MODS
 """
-print("Caching mods into dictionary...")
-cached_mods = {} # {"version#": [{"id": "mod_id...", "location": "file_location...", "tmodified": "last modified time..."}]}
+print("Caching mods into dictionary... ", end = "")
+cached_mods = {} # {"version#": [{id, dir, file, location, tmodified}]}
 for version in directories:
 	cached_mods[version] = []
 	for dir in directories[version]:
@@ -53,11 +55,13 @@ for version in directories:
 							{
 								"id": info_json['id'],
 								"dir": dir,
+								"file": mod,
 								"location": f"{dir}/{mod}",
-								"tmodified": os.path.getmtime(f"{dir}/{mod}"),
+								"tmodified": os.path.getmtime(f"{dir}/{mod}")
 							})
 			except Exception as e:
-				print(f"Something went wrong trying to load the data for {dir}/{mod}. {e}")
+				print(f"ERR: Something went wrong trying to load the data for {dir}/{mod}. {e}")
+print("Done")
 
 #print(f"{cached_mods = }")
 
@@ -65,7 +69,7 @@ for version in directories:
 """
 CREATE LIST OF MOST RECENTLY MODIFIED MODS AND OUTDATED MODS
 """
-print("Creating list of most recently updated mods...")
+print("Creating list of most recently updated mods... ", end = "")
 most_uptodate_mods = {}  # {"version#": {id: {id, location, tmodified}}}
 outdated_mods = {}  # {"version#": [{id, location, tmodified}]}
 for version in cached_mods:
@@ -76,11 +80,13 @@ for version in cached_mods:
 			most_uptodate_mods[version][cached_mod['id']] = cached_mod
 		else:
 			if most_uptodate_mods[version][cached_mod['id']]['tmodified'] > cached_mod['tmodified']:
-				outdated_mods[version].append(cached_mod)
+				if not most_uptodate_mods[version][cached_mod['id']]['file'] == cached_mod['file']:
+					outdated_mods[version].append(cached_mod)
 			else:
-				outdated_mods[version].append(
-					most_uptodate_mods[version][cached_mod['id']])
+				if not most_uptodate_mods[version][cached_mod['id']]['file'] == cached_mod['file']:
+					outdated_mods[version].append(most_uptodate_mods[version][cached_mod['id']])
 				most_uptodate_mods[version][cached_mod['id']] = cached_mod
+print("Done")
 
 #print(f"{most_uptodate_mods = }")
 #print(f"{outdated_mods = }")
@@ -92,7 +98,7 @@ CREATE 'DISABLED' FOLDERS
 created_disabled_folder_locations = []
 for version in outdated_mods:
 	if config[version]['disable_instead_of_delete'].lower == "true":
-		print(f"Creating 'DISABLED' folders for {version} mods...")
+		print(f"Creating 'DISABLED' folders for {version} mods... ", end = "")
 		for outdated_mod in outdated_mods[version]:
 			if not os.path.exists(f"{outdated_mod['dir']}/DISABLED"):
 				try:
@@ -100,28 +106,38 @@ for version in outdated_mods:
 					created_disabled_folder_locations.append(
 						f"{outdated_mod['dir']}/DISABLED")
 				except Exception as e:
-					print(f"Something went wrong trying to create DISABLED folder for directory {outdated_mod['dir']}/DISABLED. {e}")
+					print(f"ERR: Something went wrong trying to create DISABLED folder for directory {outdated_mod['dir']}/DISABLED. {e}")
+		print("Done")
 
 """
 MOVE/DELETE OLD MODS INTO THEIR RESPECTIVE DISABLED FOLDERS
 """
 for version in outdated_mods:
 	if config[version]['disable_instead_of_delete'].lower() == "false": # Delete
-		print(f"Deleting {version}'s mods...")
+		print(f"Deleting {version}'s mods... ", end = "")
 		for mod in outdated_mods[version]:
-			#os.remove(mod['location'])
-			send2trash(mod['location'])
+			try:
+				#os.remove(mod['location'])
+				send2trash(mod['location'])
+			except Exception as e:
+				print(f"ERR: Something went wrong trying to delete file in location {mod['location']}. {e}")
+		print("Done")
 	else: # Disable
-		print(f"Disabling {version}'s mods...")
+		print(f"Disabling {version}'s mods... ", end = "")
 		for mod in outdated_mods[version]:
-			shutil.move(mod['location'], f"{mod['dir']}/DISABLED")
+			try:
+				shutil.move(mod['location'], f"{mod['dir']}/DISABLED")
+			except Exception as e:
+				print(f"ERR: Something went wrong trying to move file in location {mod['location']}/DISABLED. {e}")
+		print("Done")
 
 
 """
 COPYING MOST RECENTLY UPDATED MODS INTO WHERE OUTDATED MODS WERE
 """
-print("Updating mods...")
+print("Updating mods... ", end = "")
 for version in outdated_mods:
 	for mod in outdated_mods[version]:
 		if not mod['dir'] == most_uptodate_mods[version][mod['id']]['dir']:
 			shutil.copy(most_uptodate_mods[version][mod['id']]['location'], f"{mod['dir']}")
+print("Done")
