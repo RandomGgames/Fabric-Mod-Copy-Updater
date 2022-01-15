@@ -11,7 +11,4 @@ What this script does is, when you download a new version of a mod manually and 
  - Python library Send2Trash. ```pip install Send2Trash```. Tested using version 1.8.0, but any should work I assume.
 
 ## Planned updates/fixes
-(Sorted by highest priority at the top)
-- [x] Fix issue where up to date mods of the same version are being deleted/disabled and re-copied due to different file modified times
-- [ ] Add log file which contains the date the script was ran, what mods were moved, and what mods were updated.
 - [ ] Make it forge mod compatable too (MAYBE, no promises)
