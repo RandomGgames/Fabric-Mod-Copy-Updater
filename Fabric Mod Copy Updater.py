@@ -140,7 +140,11 @@ print("Updating mods... ", end = "")
 for version in outdated_mods:
 	for mod in outdated_mods[version]:
 		if not mod['dir'] == most_uptodate_mods[version][mod['id']]['dir']:
-			shutil.copy(most_uptodate_mods[version][mod['id']]['location'], f"{mod['dir']}")
+			try:
+				shutil.copy(most_uptodate_mods[version][mod['id']]['location'], mod['location'])
+			except Exception as e:
+				print(f"ERR: Something went wrong copying {most_uptodate_mods[version][mod['id']]['location']} to {mod['location']}. {e}")
+				log(f"ERR: Something went wrong copying {most_uptodate_mods[version][mod['id']]['location']} to {mod['location']}. {e}", False)
 print("Done")
 
 
