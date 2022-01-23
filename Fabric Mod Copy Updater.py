@@ -5,19 +5,11 @@ from zipfile import ZipFile
 import json
 from datetime import datetime
 
-
-#FUNCTIONS
-def log(text, write_timestamp = True):
-	with open("fabric mod copy updater log.txt", "a", encoding="UTF-8") as file:
-		if write_timestamp:
-			file.write(f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} - {text}\n")
-		else:
-			file.write(f"{text}\n")
-
-log("Running mods cleanup...")
+log_file = open("fabric mod copy updater log.txt", "a", encoding="UTF-8")
+log_file.write(f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} - Running mods cleanup...\n")
 
 #READ 'MOD UPDATER.INI' CONFIG
-print("Reading 'mod updater.ini' config... ", end = "")
+print("Reading 'mod updater.ini' config...")
 config = configparser.ConfigParser()
 if os.path.isfile("mod updater.ini"):
 	config.read("mod updater.ini")
@@ -29,20 +21,18 @@ print("Done")
 
 
 #SORT OUT DIRECTORIES INTO DICTIONARY
-print("Caching directories into dictionary... ", end = "")
+print("Caching directories into dictionary...")
 directories = {}  # {version: [directories]}
 for version in config.sections():
 	directories[version] = []
-	for dir in eval(config[version]['directories']):
+	for dir in config[version]['directories'].replace('[', '').replace(']', '').replace('"', '').replace("'", "").replace('\\', '/').split(', '):
 		directories[version].append(dir)
+print(f"{directories = }")
 print("Done")
-
-#print(f"{directories = }")
-log(f"Directories: {directories}", False)
 
 
 #CACHE ALL MODS
-print("Caching mods into dictionary... ", end = "")
+print("Caching mods into dictionary...")
 cached_mods = {} # {"version#": [{id, dir, file, location, tmodified}]}
 for version in directories:
 	cached_mods[version] = []
@@ -59,19 +49,16 @@ for version in directories:
 								"dir": dir,
 								"file": mod,
 								"location": f"{dir}/{mod}",
-								"tmodified": os.path.getmtime(f"{dir}/{mod}")
+								"tmodified": os.path.getctime(f"{dir}/{mod}")
 							})
 			except Exception as e:
 				print(f"ERR: Something went wrong trying to load the data for {dir}/{mod}. {e}")
-				log(f"ERR: Something went wrong trying to load the data for {dir}/{mod}. {e}", False)
+print(f"{cached_mods = }")
 print("Done")
-
-#print(f"{cached_mods = }")
-log(f"Cached mods: {cached_mods}", False)
 
 
 #CREATE LIST OF MOST RECENTLY MODIFIED MODS AND OUTDATED MODS
-print("Creating list of most recently updated mods... ", end = "")
+print("Creating list of most recently updated mods...")
 most_uptodate_mods = {}  # {"version#": {id: {id, location, tmodified}}}
 outdated_mods = {}  # {"version#": [{id, location, tmodified}]}
 for version in cached_mods:
@@ -88,64 +75,59 @@ for version in cached_mods:
 				if not most_uptodate_mods[version][cached_mod['id']]['file'] == cached_mod['file']:
 					outdated_mods[version].append(most_uptodate_mods[version][cached_mod['id']])
 				most_uptodate_mods[version][cached_mod['id']] = cached_mod
+print(f"{most_uptodate_mods = }")
+print(f"{outdated_mods = }")
 print("Done")
-
-#print(f"{most_uptodate_mods = }")
-#print(f"{outdated_mods = }")
-log(f"Most recently modified mods: {most_uptodate_mods}", False)
-log(f"Outdated mods: {outdated_mods}", False)
 
 
 #CREATE 'DISABLED' FOLDERS
 created_disabled_folder_locations = []
 for version in outdated_mods:
 	if config[version]['disable_instead_of_delete'].lower == "true":
-		print(f"Creating 'DISABLED' folders for {version} mods... ", end = "")
+		print(f"Creating 'DISABLED' folders...")
 		for outdated_mod in outdated_mods[version]:
 			if not os.path.exists(f"{outdated_mod['dir']}/DISABLED"):
 				try:
 					os.makedirs(f"{outdated_mod['dir']}/DISABLED")
 					created_disabled_folder_locations.append(f"{outdated_mod['dir']}/DISABLED")
 				except Exception as e:
-					print(f"ERR: Something went wrong trying to create DISABLED folder for directory {outdated_mod['dir']}/DISABLED. {e}")
-					log(f"ERR: Something went wrong trying to create DISABLED folder for directory {outdated_mod['dir']}/DISABLED. {e}", False)
+					print(f"ERR: Something went wrong trying to create DISABLED folder into directory {outdated_mod['dir']}. {e}")
 		print("Done")
-		log(f"Created disabled folder locations: {created_disabled_folder_locations}", False)
 
 
 #MOVE/DELETE OLD MODS INTO THEIR RESPECTIVE DISABLED FOLDERS
 for version in outdated_mods:
 	if config[version]['disable_instead_of_delete'].lower() == "false": # Delete
-		print(f"Deleting {version}'s mods... ", end = "")
+		print(f"Deleting outdated mods for section {version}...")
 		for mod in outdated_mods[version]:
 			try:
 				os.remove(mod['location'])
+				log_file.write(f"Deleted outdated mod {mod['location']}\n")
 			except Exception as e:
-				print(f"ERR: Something went wrong trying to delete file in location {mod['location']}. {e}")
-				log(f"ERR: Something went wrong trying to delete file in location {mod['location']}. {e}", False)
+				print(f"ERR: Something went wrong trying to delete {mod['location']}. {e}")
 		print("Done")
 	else: # Disable
-		print(f"Disabling {version}'s mods... ", end = "")
+		print(f"Disabling outdated mods for section {version}...")
 		for mod in outdated_mods[version]:
 			try:
 				shutil.move(mod['location'], f"{mod['dir']}/DISABLED")
+				log_file.write(f"Moved outdated mod {mod['location']} into {mod['dir']}/DISABLED\n")
 			except Exception as e:
-				print(f"ERR: Something went wrong trying to move file in location {mod['location']}/DISABLED. {e}")
-				log(f"ERR: Something went wrong trying to move file in location {mod['location']}/DISABLED. {e}", False)
+				print(f"ERR: Something went wrong trying to move {mod['location']} into {mod['location']}/DISABLED. {e}")
 		print("Done")
 
 
 #COPYING MOST RECENTLY UPDATED MODS INTO WHERE OUTDATED MODS WERE
-print("Updating mods... ", end = "")
+print("Updating mods...")
 for version in outdated_mods:
 	for mod in outdated_mods[version]:
 		if not mod['dir'] == most_uptodate_mods[version][mod['id']]['dir']:
 			try:
-				shutil.copy(most_uptodate_mods[version][mod['id']]['location'], mod['location'])
+				shutil.copy2(most_uptodate_mods[version][mod['id']]['location'], mod['location'])
+				log_file.write(f"Copied {most_uptodate_mods[version][mod['id']]['location']} into {mod['dir']}\n")
 			except Exception as e:
 				print(f"ERR: Something went wrong copying {most_uptodate_mods[version][mod['id']]['location']} to {mod['location']}. {e}")
-				log(f"ERR: Something went wrong copying {most_uptodate_mods[version][mod['id']]['location']} to {mod['location']}. {e}", False)
 print("Done")
 
 
-log("Done\n")
+log_file.write(f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} - Done\n\n")
