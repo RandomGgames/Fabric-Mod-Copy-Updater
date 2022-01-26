@@ -102,6 +102,7 @@ for version in outdated_mods:
 		for mod in outdated_mods[version]:
 			try:
 				os.remove(mod['location'])
+				print(f"Deleted outdated mod {mod['location']}")
 				log_file.write(f"Deleted outdated mod {mod['location']}\n")
 			except Exception as e:
 				print(f"ERR: Something went wrong trying to delete {mod['location']}. {e}")
@@ -111,6 +112,7 @@ for version in outdated_mods:
 		for mod in outdated_mods[version]:
 			try:
 				shutil.move(mod['location'], f"{mod['dir']}/DISABLED")
+				print(f"Moved outdated mod {mod['location']} into {mod['dir']}/DISABLED")
 				log_file.write(f"Moved outdated mod {mod['location']} into {mod['dir']}/DISABLED\n")
 			except Exception as e:
 				print(f"ERR: Something went wrong trying to move {mod['location']} into {mod['location']}/DISABLED. {e}")
@@ -124,6 +126,7 @@ for version in outdated_mods:
 		if not mod['dir'] == most_uptodate_mods[version][mod['id']]['dir']:
 			try:
 				shutil.copy2(most_uptodate_mods[version][mod['id']]['location'], mod['location'])
+				print(f"Copied {most_uptodate_mods[version][mod['id']]['location']} into {mod['dir']}")
 				log_file.write(f"Copied {most_uptodate_mods[version][mod['id']]['location']} into {mod['dir']}\n")
 			except Exception as e:
 				print(f"ERR: Something went wrong copying {most_uptodate_mods[version][mod['id']]['location']} to {mod['location']}. {e}")
@@ -131,3 +134,4 @@ print("Done")
 
 
 log_file.write(f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} - Done\n\n")
+input("Press any key to exit.")
