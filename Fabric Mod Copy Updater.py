@@ -17,12 +17,11 @@ def log(text, print_to_console: bool = True, print_to_log: bool = True):
 
 
 """LOG START TIME"""
-start_time = datetime.now()
-log(f"{start_time.strftime('%m/%d/%Y, %H:%M:%S')} - Running mods cleanup...", print_to_console = False)
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Running mods cleanup...")
 
 
 """READ 'MOD UPDATER.INI' CONFIG"""
-log("INFO: READING CONFIG FILE...")
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: READING CONFIG FILE...")
 config = configparser.ConfigParser()
 # If the config file exists already, read it
 if os.path.isfile("mod updater.ini"):
@@ -38,7 +37,7 @@ else:
 
 
 """BUILD MOST UP TO DATE MOD CACHE"""
-log("INFO: BUILDING MOST UP TO DATE MOD CACHE...")
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: BUILDING MOST UP TO DATE MOD CACHE...")
 most_updated_mods_cache = {}
 for version in config.sections():
 	most_updated_mods_cache[version] = {}
@@ -64,17 +63,19 @@ for version in config.sections():
 							}
 
 			except Exception as e:
-				log(f"WARN: Error while caching most up to date mod '{mod_to_cache}'. {e}")
+				log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Error while caching most up to date mod '{mod_to_cache}'. {e}")
 
 	except Exception as e:
-		log(f"WARN: Unable to access most up to date mods directory '{config[version]['updated_mods_directory']} for'. {e}")
+		log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Unable to access most up to date mods directory '{config[version]['updated_mods_directory']} for'. {e}")
 #print(f"{most_updated_mods_cache = }")
 
 
-log("INFO: UPDATING MODS...")
+"""UPDATING MODS"""
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: UPDATING MODS...", print_to_console = False)
 count_mods_updated = 0
 for version in config.sections():
 	for directory in config[version]['mods_to_update_directories'].split(', '):
+		log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Updating mods in {directory}")
 		try:
 			for mod in [mod for mod in os.listdir(directory) if mod.endswith(".jar")]:
 				try:
@@ -98,12 +99,10 @@ for version in config.sections():
 							log(f"WARN: Mod '{mod}' located at '{path}' does not have a copy within most up to date mods directory. It will be ignored.")
 
 				except Exception as e:
-					log(f"WARN: Error while processing '{directory}/{mod}'. {e}")
+					log(f"WARN: Error while processing '{mod}' for directory '{directory}'. {e}")
 
 		except Exception as e:
-			log(
-				f"WARN: Unable to access mods to update directory '{directory}'")
-log(f"Updated {count_mods_updated} mod(s)")
+			log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Unable to access mods to update directory '{directory}'")
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Updated {count_mods_updated} mod(s)")
 
-log(f"Done. ({(datetime.now() - start_time).total_seconds()}s)\n", print_to_console = False)
-log(f"Done.", print_to_log = False)
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Done\n", print_to_console = False)
