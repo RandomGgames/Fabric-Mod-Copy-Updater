@@ -30,8 +30,8 @@ if os.path.isfile("mod updater.ini"):
 # If the config file doesn't exist, set it up with these default settings
 else:
 	config['1.18 Mods'] = {
-		"updated_mods_directory": '"./1.18 Mods"',
-		"mods_to_update_directories": list()
+		"updated_mods_directory": '',
+		"mods_to_update_directories": ''
 	}
 	with open("mod updater.ini", "w") as configfile:
 		config.write(configfile)
