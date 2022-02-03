@@ -68,7 +68,7 @@ except Exception as e:
 
 
 """UPDATING MODS"""
-log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: UPDATING MODS...", print_to_console = False)
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: UPDATING MODS...")
 count_mods_updated = 0
 try:
 	for version in config.sections():
@@ -91,7 +91,7 @@ try:
 						# Replace with more up to date version
 						shutil.copy2(most_updated_mods_cache[version][mod_ID]['path'], path.parent)
 						count_mods_updated += 1
-						log(f"INFO: Updated '{str(path)}'", print_to_console = False)
+						log(f"INFO: Replaced '{str(path)}' with '{Path(most_updated_mods_cache[version][mod_ID]['path']).name}'")
 				else:
 					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Mod '{path}' does not have a copy within most up to date mods directory. It will be ignored.")
 except Exception as e:
@@ -99,4 +99,4 @@ except Exception as e:
 
 
 log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Updated {count_mods_updated} mod(s)")
-log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Done\n", print_to_console = False)
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Done\n")
