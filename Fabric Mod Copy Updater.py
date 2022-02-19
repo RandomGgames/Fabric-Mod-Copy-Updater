@@ -18,11 +18,11 @@ def log(text, print_to_console: bool = True, print_to_log: bool = True):
 
 
 """LOG START TIME"""
-###log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Running mods cleanup...")
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - Running mods cleanup...", print_to_log = False)
 
 
 """READ 'MOD UPDATER.INI' CONFIG"""
-###log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: READING CONFIG FILE...")
+log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - INFO: READING CONFIG FILE...", print_to_log = False)
 config = configparser.ConfigParser()
 # If the config file exists already, read it
 if os.path.isfile("mod updater.ini"):
@@ -72,7 +72,6 @@ try:
 				else: #Current looped mod is outdated
 					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Outdated mod: {mod_id}, '{os.path.basename(path)}'.")
 
-
 except Exception as e:
 	log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: {e}")
 #print(f"{most_updated_mods = }")
@@ -108,6 +107,7 @@ try:
 						log(f"INFO: Replaced '{str(path.name)}' with '{Path(most_updated_mods[section][mod_id]['path']).name}'")
 				else:
 					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Mod '{path}' does not have a copy within most up to date mods directory. It will be ignored.")
+
 except Exception as e:
 	log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: {e}")
 
