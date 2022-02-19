@@ -11,7 +11,7 @@ This is a python script that allows you to keep your mods in sync with one anoth
 - Instructions for how to set up the config file can be found on the [WIKI](https://github.com/RandomGgames/Fabric-Mod-Copy-Updater/wiki#example-config)
 
 ## Requirements
- - Python. Not sure about the minimum version, but I wrote it in v3.9.6 so that works at least. If you test other versions and it works, share in [Discussion]
+ - Python. Not sure about the minimum version, but I wrote it in v3.9.6 so that works at least. If you test other versions and it works, share in [Discussion](https://github.com/RandomGgames/Fabric-Mod-Copy-Updater/discussions)
 
 ## Planned updates/fixes
 - [ ] Make it forge mod compatable too (MAYBE, no promises)
