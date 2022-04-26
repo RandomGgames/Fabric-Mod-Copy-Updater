@@ -52,7 +52,7 @@ try:
 					mod_id = json.load(modinfo, strict=False)["id"]
 				modinfo.close()
 			modzip.close()
-			
+
 			if mod_id not in most_updated_mods[section]:
 				most_updated_mods[section][mod_id] = {
 					"id": mod_id,
@@ -64,6 +64,8 @@ try:
 				current_tmodified = most_updated_mods[section][mod_id]['tmodified']
 				if current_tmodified < tmodified: #If the file cached is older
 					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Outdated mod: {mod_id}, '{os.path.basename(most_updated_mods[section][mod_id]['path'])}'.")
+					os.rename(most_updated_mods[section][mod_id]['path'], f"{str(most_updated_mods[section][mod_id]['path'])}.OUTDATED") # Set to .OUTDATED
+					#os.remove(most_updated_mods[section][mod_id]['path']) # Delete mod
 					most_updated_mods[section][mod_id] = {
 						"id": mod_id,
 						"path": str(path),
@@ -71,6 +73,8 @@ try:
 					}
 				else: #Current looped mod is outdated
 					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Outdated mod: {mod_id}, '{os.path.basename(path)}'.")
+					os.rename((path), f"{str(path)}.OUTDATED") # Set to .OUTDATED
+					#os.remove(path) # Delete mod
 
 except Exception as e:
 	log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: {e}")
@@ -90,23 +94,25 @@ try:
 			for mod in [mod for mod in os.listdir(directory) if mod.endswith(".jar")]:
 				path = Path(f"{str(directory)}\\{mod}")
 				tmodified = os.path.getmtime(str(path))
-				with ZipFile(path, "r") as modzip:
-					with modzip.open("fabric.mod.json", "r") as modinfo:
-						mod_id = json.load(modinfo, strict=False)["id"]
-					modinfo.close()
-				modzip.close()
-
-				if mod_id in most_updated_mods[section]:
-					# If files are named the same, assume version is same already even though tmodified is different
-					if mod != os.path.basename(most_updated_mods[section][mod_id]['path']):
-						# Remove outdated mod
-						os.remove(str(path))
-						# Replace with more up to date version
-						shutil.copy2(most_updated_mods[section][mod_id]['path'], path.parent)
-						count_mods_updated += 1
-						log(f"INFO: Replaced '{str(path.name)}' with '{Path(most_updated_mods[section][mod_id]['path']).name}'")
-				else:
-					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Mod '{path}' does not have a copy within most up to date mods directory. It will be ignored.")
+				try:
+					with ZipFile(path, "r") as modzip:
+						with modzip.open("fabric.mod.json", "r") as modinfo:
+							mod_id = json.load(modinfo, strict=False)["id"]
+						modinfo.close()
+					modzip.close()
+					if mod_id in most_updated_mods[section]:
+						# If files are named the same, assume version is same already even though tmodified is different
+						if mod != os.path.basename(most_updated_mods[section][mod_id]['path']):
+							# Remove outdated mod
+							os.remove(str(path))
+							# Replace with more up to date version
+							shutil.copy2(most_updated_mods[section][mod_id]['path'], path.parent)
+							count_mods_updated += 1
+							log(f"INFO: Replaced '{str(path.name)}' with '{Path(most_updated_mods[section][mod_id]['path']).name}'")
+					else:
+						log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: Mod '{path}' does not have a copy within most up to date mods directory. It will be ignored.")
+				except Exception as e:
+					log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN for {str(path)}: {e}")
 
 except Exception as e:
 	log(f"[{datetime.now().strftime('%m/%d/%Y %H:%M:%S:%f')}] - WARN: {e}")
